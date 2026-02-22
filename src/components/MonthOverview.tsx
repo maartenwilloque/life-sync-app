@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, isWithinInterval, addWeeks } from 'date-fns';
 import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import type { AgendaItem, Period } from '../types';
 
@@ -43,6 +43,9 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
   const [selectedDay, setSelectedDay] = useState<Date | null>(new Date());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<AgendaItem>>({});
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('weekly');
+  const [repeatUntil, setRepeatUntil] = useState(format(addMonths(new Date(), 3), 'yyyy-MM-dd'));
   
   // Use external displayMonth if provided, otherwise use internal state
   const displayMonth = externalDisplayMonth || internalDisplayMonth;
@@ -136,15 +139,51 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
             e.preventDefault();
             if (formData.title && onAddItem) {
               const [hours, minutes] = formData.time.split(':');
-              const date = new Date(formData.date);
-              date.setHours(parseInt(hours), parseInt(minutes));
-              onAddItem({
-                title: formData.title,
-                date,
-                type: formData.type,
-                category: formData.category,
-                completed: false
-              });
+              
+              if (isRecurring) {
+                // Generate recurring items
+                const startDate = new Date(formData.date);
+                const endDate = new Date(repeatUntil);
+                let currentDate = new Date(startDate);
+                
+                while (currentDate <= endDate) {
+                  const itemDate = new Date(currentDate);
+                  itemDate.setHours(parseInt(hours), parseInt(minutes));
+                  
+                  onAddItem({
+                    title: formData.title,
+                    date: itemDate,
+                    type: formData.type,
+                    category: formData.category,
+                    completed: false
+                  });
+                  
+                  // Calculate next occurrence
+                  if (recurrenceFrequency === 'weekly') {
+                    currentDate = addWeeks(currentDate, 1);
+                  } else if (recurrenceFrequency === 'biweekly') {
+                    currentDate = addWeeks(currentDate, 2);
+                  } else if (recurrenceFrequency === 'monthly') {
+                    currentDate = addMonths(currentDate, 1);
+                  }
+                }
+                
+                // Reset recurrence settings
+                setIsRecurring(false);
+                setRecurrenceFrequency('weekly');
+                setRepeatUntil(format(addMonths(new Date(), 3), 'yyyy-MM-dd'));
+              } else {
+                // Single item
+                const date = new Date(formData.date);
+                date.setHours(parseInt(hours), parseInt(minutes));
+                onAddItem({
+                  title: formData.title,
+                  date,
+                  type: formData.type,
+                  category: formData.category,
+                  completed: false
+                });
+              }
             }
           }}
           className="mb-4 space-y-4 p-4 bg-bg-elevated rounded-lg border border-border-subtle"
@@ -223,16 +262,63 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
             </div>
           </div>
 
+          {/* Recurring Options */}
+          <div className="border-t border-border-subtle pt-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="recurring-checkbox"
+                checked={isRecurring}
+                onChange={e => setIsRecurring(e.target.checked)}
+                className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-acid-green focus:ring-2 focus:ring-acid-green"
+              />
+              <label htmlFor="recurring-checkbox" className="text-sm font-medium text-text-primary cursor-pointer">
+                Repeat this item
+              </label>
+            </div>
+
+            {isRecurring && (
+              <div className="grid grid-cols-2 gap-3 pl-6">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-1">Frequency</label>
+                  <select
+                    value={recurrenceFrequency}
+                    onChange={e => setRecurrenceFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly')}
+                    className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary text-sm"
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-weekly (every 2 weeks)</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-1">Repeat until</label>
+                  <input
+                    type="date"
+                    value={repeatUntil}
+                    onChange={e => setRepeatUntil(e.target.value)}
+                    className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary text-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
               className="flex-1 bg-acid-green hover:bg-yellow-300 text-bg-void px-4 py-2 rounded-md font-bold transition-colors"
             >
-              Add Item
+              {isRecurring ? 'Add Recurring Items' : 'Add Item'}
             </button>
             <button
               type="button"
-              onClick={() => onFormToggle?.(false)}
+              onClick={() => {
+                onFormToggle?.(false);
+                setIsRecurring(false);
+                setRecurrenceFrequency('weekly');
+                setRepeatUntil(format(addMonths(new Date(), 3), 'yyyy-MM-dd'));
+              }}
               className="flex-1 bg-bg-surface hover:bg-bg-elevated text-text-primary px-4 py-2 rounded-md font-medium transition-colors border border-border-subtle"
             >
               Cancel

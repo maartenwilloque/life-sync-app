@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addWeeks, addMonths, differenceInDays } from 'date-fns';
 import { Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import type { Period } from '../types';
 
@@ -51,6 +51,9 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     color: 'bg-blue-100 border-blue-300',
     description: ''
   });
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('biweekly');
+  const [repeatUntil, setRepeatUntil] = useState(format(addMonths(new Date(), 6), 'yyyy-MM-dd'));
 
   // Filter periods to only show those that overlap with the displayed month
   const monthStart = startOfMonth(displayMonth);
@@ -65,16 +68,62 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     if (!formData.name.trim() || !formData.startDate || !formData.endDate) return;
 
     const color = getColorForType(formData.type, periods);
-    const newPeriod = {
-      name: formData.name,
-      type: formData.type,
-      startDate: new Date(formData.startDate),
-      endDate: new Date(formData.endDate),
-      color: color,
-      description: formData.description
-    };
-
-    onAddPeriod(newPeriod);
+    
+    if (isRecurring) {
+      // Generate recurring periods
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      const repeatEndDate = new Date(repeatUntil);
+      const periodDuration = differenceInDays(endDate, startDate);
+      
+      let currentStart = new Date(startDate);
+      let counter = 1;
+      
+      while (currentStart <= repeatEndDate) {
+        const currentEnd = new Date(currentStart);
+        currentEnd.setDate(currentEnd.getDate() + periodDuration);
+        
+        // Don't create period if it would extend beyond repeatUntil
+        if (currentEnd > repeatEndDate) break;
+        
+        onAddPeriod({
+          name: `${formData.name} ${counter}`,
+          type: formData.type,
+          startDate: new Date(currentStart),
+          endDate: currentEnd,
+          color: color,
+          description: formData.description
+        });
+        
+        counter++;
+        
+        // Calculate next occurrence
+        if (recurrenceFrequency === 'weekly') {
+          currentStart = addWeeks(currentStart, 1);
+        } else if (recurrenceFrequency === 'biweekly') {
+          currentStart = addWeeks(currentStart, 2);
+        } else if (recurrenceFrequency === 'monthly') {
+          currentStart = addMonths(currentStart, 1);
+        }
+      }
+      
+      // Reset recurrence settings
+      setIsRecurring(false);
+      setRecurrenceFrequency('biweekly');
+      setRepeatUntil(format(addMonths(new Date(), 6), 'yyyy-MM-dd'));
+    } else {
+      // Single period
+      const newPeriod = {
+        name: formData.name,
+        type: formData.type,
+        startDate: new Date(formData.startDate),
+        endDate: new Date(formData.endDate),
+        color: color,
+        description: formData.description
+      };
+      onAddPeriod(newPeriod);
+    }
+    
     resetForm();
   };
 
@@ -116,6 +165,9 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     });
     setIsFormOpen(false);
     setEditingId(null);
+    setIsRecurring(false);
+    setRecurrenceFrequency('biweekly');
+    setRepeatUntil(format(addMonths(new Date(), 6), 'yyyy-MM-dd'));
   };
 
   return (
@@ -208,13 +260,57 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
             />
           </div>
 
+          {/* Recurring Options - Only show when creating new periods */}
+          {!editingId && (
+            <div className="border-t border-border-subtle pt-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="period-recurring-checkbox"
+                  checked={isRecurring}
+                  onChange={e => setIsRecurring(e.target.checked)}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-surface text-acid-green focus:ring-2 focus:ring-acid-green"
+                />
+                <label htmlFor="period-recurring-checkbox" className="text-sm font-medium text-text-primary cursor-pointer">
+                  Create recurring periods
+                </label>
+              </div>
+
+              {isRecurring && (
+                <div className="grid grid-cols-2 gap-3 pl-6">
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-1">Frequency</label>
+                    <select
+                      value={recurrenceFrequency}
+                      onChange={e => setRecurrenceFrequency(e.target.value as 'weekly' | 'biweekly' | 'monthly')}
+                      className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary text-sm"
+                    >
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Bi-weekly (every 2 weeks)</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-text-primary mb-1">Repeat until</label>
+                    <input
+                      type="date"
+                      value={repeatUntil}
+                      onChange={e => setRepeatUntil(e.target.value)}
+                      className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
               className="flex-1 flex items-center justify-center gap-2 bg-acid-green hover:bg-yellow-300 text-bg-void px-4 py-2 rounded-md font-bold transition-colors text-sm"
             >
               <Check className="w-4 h-4" />
-              {editingId ? 'Update' : 'Add'} Period
+              {editingId ? 'Update' : isRecurring ? 'Add Recurring Periods' : 'Add'} Period
             </button>
             <button
               type="button"
