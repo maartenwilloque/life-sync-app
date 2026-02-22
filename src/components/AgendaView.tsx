@@ -12,6 +12,7 @@ export const AgendaView: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'WORK' | 'PRIVATE'>('WORK');
   const [newType, setNewType] = useState('Task');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [displayMonth, setDisplayMonth] = useState(new Date());
 
   return (
     <div className="md:ml-20 pb-20 md:pb-0">
@@ -23,6 +24,7 @@ export const AgendaView: React.FC = () => {
           onAddPeriod={addPeriod}
           onUpdatePeriod={updatePeriod}
           onRemovePeriod={removePeriod}
+          displayMonth={displayMonth}
         />
       </div>
 
@@ -36,6 +38,8 @@ export const AgendaView: React.FC = () => {
           isFormOpen={isFormOpen}
           onFormToggle={setIsFormOpen}
           onAddItem={addAgendaItem}
+          displayMonth={displayMonth}
+          onDisplayMonthChange={setDisplayMonth}
           formData={{
             title: newItemText,
             date: new Date(newDate),

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import type { Period } from '../types';
 
@@ -9,6 +9,7 @@ interface PeriodsManagerProps {
   onAddPeriod: (period: Omit<Period, 'id'>) => void;
   onUpdatePeriod: (id: string, updates: Partial<Period>) => void;
   onRemovePeriod: (id: string) => void;
+  displayMonth?: Date;
 }
 
 const COLORS = [
@@ -37,7 +38,8 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
   periodTypes,
   onAddPeriod,
   onUpdatePeriod,
-  onRemovePeriod
+  onRemovePeriod,
+  displayMonth = new Date()
 }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,6 +51,14 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     color: 'bg-blue-100 border-blue-300',
     description: ''
   });
+
+  // Filter periods to only show those that overlap with the displayed month
+  const monthStart = startOfMonth(displayMonth);
+  const monthEnd = endOfMonth(displayMonth);
+  const visiblePeriods = periods.filter(p => 
+    // Period starts before month ends AND period ends after month starts
+    p.startDate <= monthEnd && p.endDate >= monthStart
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,11 +229,11 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
       )}
 
       {/* Periods List */}
-      {periods.length === 0 ? (
+      {visiblePeriods.length === 0 ? (
         <p className="text-sm text-text-muted text-center py-4">No periods added yet</p>
       ) : (
         <div className="space-y-2">
-          {periods.map(period => (
+          {visiblePeriods.map(period => (
             <div
               key={period.id}
               className={`p-3 rounded-lg border ${period.color}`}

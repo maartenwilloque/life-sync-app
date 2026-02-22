@@ -12,6 +12,8 @@ interface MonthOverviewProps {
   isFormOpen?: boolean;
   onFormToggle?: (open: boolean) => void;
   onAddItem?: (item: Omit<AgendaItem, 'id'>) => void;
+  displayMonth?: Date;
+  onDisplayMonthChange?: (month: Date) => void;
   formData?: {
     title: string;
     date: Date;
@@ -31,14 +33,20 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
   isFormOpen = false,
   onFormToggle,
   onAddItem,
+  displayMonth: externalDisplayMonth,
+  onDisplayMonthChange,
   formData,
   onFormDataChange,
   agendaTypes = []
 }) => {
-  const [displayMonth, setDisplayMonth] = useState(new Date());
+  const [internalDisplayMonth, setInternalDisplayMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(new Date());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<AgendaItem>>({});
+  
+  // Use external displayMonth if provided, otherwise use internal state
+  const displayMonth = externalDisplayMonth || internalDisplayMonth;
+  const setDisplayMonth = onDisplayMonthChange || setInternalDisplayMonth;
   
   const monthStart = startOfMonth(displayMonth);
   const monthEnd = endOfMonth(displayMonth);
