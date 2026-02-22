@@ -124,7 +124,13 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
       <div className="flex items-center justify-between mb-4 pb-4 border-b border-border-mid">
         <h3 className="text-lg font-bold text-text-primary font-display">Agenda</h3>
         <button
-          onClick={() => onFormToggle?.(!isFormOpen)}
+          onClick={() => {
+            if (!isFormOpen && selectedDay) {
+              // Opening form - set date to selected day
+              onFormDataChange?.('date', selectedDay);
+            }
+            onFormToggle?.(!isFormOpen);
+          }}
           className="flex items-center gap-2 bg-acid-green hover:bg-yellow-300 text-bg-void px-3 py-1 rounded-md text-sm font-bold transition-colors"
         >
           <Plus className="w-4 h-4" />

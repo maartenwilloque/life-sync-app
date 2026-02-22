@@ -183,7 +183,19 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
         <h3 className="text-lg font-bold text-text-primary font-display">Periods & Schedules</h3>
         {!isFormOpen && !editingId && (
           <button
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => {
+              // Set default dates to the displayed month
+              const monthStart = startOfMonth(displayMonth);
+              setFormData({
+                name: '',
+                type: 'Kids with me',
+                startDate: format(monthStart, 'yyyy-MM-dd'),
+                endDate: format(monthStart, 'yyyy-MM-dd'),
+                color: 'bg-blue-100 border-blue-300',
+                description: ''
+              });
+              setIsFormOpen(true);
+            }}
             className="flex items-center gap-2 bg-acid-green hover:bg-yellow-300 text-bg-void px-3 py-1 rounded-md text-sm font-bold transition-colors"
           >
             <Plus className="w-4 h-4" />
