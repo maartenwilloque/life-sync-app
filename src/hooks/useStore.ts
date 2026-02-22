@@ -103,7 +103,12 @@ export const useStore = () => {
   // Agenda operations
   const addAgendaItem = (item: Omit<AgendaItem, 'id'>) => {
     if (currentUser) {
-      fbAddAgendaItem(currentUser.uid, item);
+      fbAddAgendaItem(currentUser.uid, item).catch(error => {
+        console.error('Failed to add agenda item:', error);
+        // Fall back to localStorage on Firebase error
+        const newItem: AgendaItem = { ...item, id: crypto.randomUUID() };
+        setAgenda(prev => [...prev, newItem].sort((a, b) => a.date.getTime() - b.date.getTime()));
+      });
     } else {
       const newItem: AgendaItem = { ...item, id: crypto.randomUUID() };
       setAgenda(prev => [...prev, newItem].sort((a, b) => a.date.getTime() - b.date.getTime()));
@@ -113,7 +118,9 @@ export const useStore = () => {
   const toggleAgendaItem = (id: string) => {
     const item = agenda.find(i => i.id === id);
     if (currentUser && item) {
-      fbUpdateAgendaItem(id, { ...item, completed: !item.completed });
+      fbUpdateAgendaItem(id, { ...item, completed: !item.completed }).catch(error => {
+        console.error('Failed to toggle agenda item:', error);
+      });
     } else {
       setAgenda(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
     }
@@ -121,7 +128,9 @@ export const useStore = () => {
 
   const removeAgendaItem = (id: string) => {
     if (currentUser) {
-      fbDeleteAgendaItem(id);
+      fbDeleteAgendaItem(id).catch(error => {
+        console.error('Failed to delete agenda item:', error);
+      });
     } else {
       setAgenda(prev => prev.filter(item => item.id !== id));
     }
@@ -129,7 +138,9 @@ export const useStore = () => {
 
   const updateAgendaItem = (id: string, updates: Partial<AgendaItem>) => {
     if (currentUser) {
-      fbUpdateAgendaItem(id, updates);
+      fbUpdateAgendaItem(id, updates).catch(error => {
+        console.error('Failed to update agenda item:', error);
+      });
     } else {
       setAgenda(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
     }
@@ -138,7 +149,10 @@ export const useStore = () => {
   // Shopping operations
   const addShoppingItem = (name: string) => {
     if (currentUser) {
-      fbAddShoppingItem(currentUser.uid, { name, completed: false });
+      fbAddShoppingItem(currentUser.uid, { name, completed: false }).catch(error => {
+        console.error('Failed to add shopping item:', error);
+        setShoppingList(prev => [...prev, { id: crypto.randomUUID(), name, completed: false }]);
+      });
     } else {
       setShoppingList(prev => [...prev, { id: crypto.randomUUID(), name, completed: false }]);
     }
@@ -147,7 +161,9 @@ export const useStore = () => {
   const toggleShoppingItem = (id: string) => {
     const item = shoppingList.find(i => i.id === id);
     if (currentUser && item) {
-      fbUpdateShoppingItem(id, { completed: !item.completed });
+      fbUpdateShoppingItem(id, { completed: !item.completed }).catch(error => {
+        console.error('Failed to toggle shopping item:', error);
+      });
     } else {
       setShoppingList(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
     }
@@ -155,7 +171,9 @@ export const useStore = () => {
 
   const removeShoppingItem = (id: string) => {
     if (currentUser) {
-      fbDeleteShoppingItem(id);
+      fbDeleteShoppingItem(id).catch(error => {
+        console.error('Failed to delete shopping item:', error);
+      });
     } else {
       setShoppingList(prev => prev.filter(item => item.id !== id));
     }
@@ -165,7 +183,9 @@ export const useStore = () => {
     const completedIds = shoppingList.filter(item => item.completed).map(item => item.id);
     completedIds.forEach(id => {
       if (currentUser) {
-        fbDeleteShoppingItem(id);
+        fbDeleteShoppingItem(id).catch(error => {
+          console.error('Failed to delete shopping item:', error);
+        });
       }
     });
     setShoppingList(prev => prev.filter(item => !item.completed));
@@ -174,7 +194,11 @@ export const useStore = () => {
   // Period operations
   const addPeriod = (period: Omit<Period, 'id'>) => {
     if (currentUser) {
-      fbAddPeriod(currentUser.uid, period);
+      fbAddPeriod(currentUser.uid, period).catch(error => {
+        console.error('Failed to add period:', error);
+        const newPeriod: Period = { ...period, id: crypto.randomUUID() };
+        setPeriods(prev => [...prev, newPeriod].sort((a, b) => a.startDate.getTime() - b.startDate.getTime()));
+      });
     } else {
       const newPeriod: Period = { ...period, id: crypto.randomUUID() };
       setPeriods(prev => [...prev, newPeriod].sort((a, b) => a.startDate.getTime() - b.startDate.getTime()));
@@ -183,7 +207,9 @@ export const useStore = () => {
 
   const updatePeriod = (id: string, updates: Partial<Period>) => {
     if (currentUser) {
-      fbUpdatePeriod(id, updates);
+      fbUpdatePeriod(id, updates).catch(error => {
+        console.error('Failed to update period:', error);
+      });
     } else {
       setPeriods(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     }
@@ -191,7 +217,9 @@ export const useStore = () => {
 
   const removePeriod = (id: string) => {
     if (currentUser) {
-      fbDeletePeriod(id);
+      fbDeletePeriod(id).catch(error => {
+        console.error('Failed to delete period:', error);
+      });
     } else {
       setPeriods(prev => prev.filter(p => p.id !== id));
     }
@@ -204,7 +232,9 @@ export const useStore = () => {
       const newTypes = [...periodTypes, trimmedType];
       setPeriodTypes(newTypes);
       if (currentUser) {
-        updateUserSettings(currentUser.uid, newTypes, agendaTypes);
+        updateUserSettings(currentUser.uid, newTypes, agendaTypes).catch(error => {
+          console.error('Failed to update period types:', error);
+        });
       }
     }
   };
@@ -213,7 +243,9 @@ export const useStore = () => {
     const newTypes = periodTypes.filter(t => t !== type);
     setPeriodTypes(newTypes);
     if (currentUser) {
-      updateUserSettings(currentUser.uid, newTypes, agendaTypes);
+      updateUserSettings(currentUser.uid, newTypes, agendaTypes).catch(error => {
+        console.error('Failed to remove period type:', error);
+      });
     }
   };
 
@@ -224,7 +256,9 @@ export const useStore = () => {
       const newTypes = [...agendaTypes, trimmedType];
       setAgendaTypes(newTypes);
       if (currentUser) {
-        updateUserSettings(currentUser.uid, periodTypes, newTypes);
+        updateUserSettings(currentUser.uid, periodTypes, newTypes).catch(error => {
+          console.error('Failed to add agenda type:', error);
+        });
       }
     }
   };
@@ -233,7 +267,9 @@ export const useStore = () => {
     const newTypes = agendaTypes.filter(t => t !== type);
     setAgendaTypes(newTypes);
     if (currentUser) {
-      updateUserSettings(currentUser.uid, periodTypes, newTypes);
+      updateUserSettings(currentUser.uid, periodTypes, newTypes).catch(error => {
+        console.error('Failed to remove agenda type:', error);
+      });
     }
   };
 

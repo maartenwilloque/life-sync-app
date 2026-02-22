@@ -59,13 +59,19 @@ export function onAgendaItemsChange(
  * Add agenda item to Firestore
  */
 export async function addAgendaItem(userId: string, item: Omit<AgendaItem, 'id'>) {
-  const docRef = await addDoc(collection(db, 'agendaItems'), {
-    ...item,
-    userId,
-    date: Timestamp.fromDate(item.date),
-    createdAt: Timestamp.now()
-  });
-  return docRef.id;
+  try {
+    const docRef = await addDoc(collection(db, 'agendaItems'), {
+      ...item,
+      userId,
+      date: Timestamp.fromDate(item.date),
+      createdAt: Timestamp.now()
+    });
+    console.log('✅ Agenda item added to Firebase:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('❌ Error adding agenda item to Firebase:', error);
+    throw error;
+  }
 }
 
 /**
@@ -127,14 +133,20 @@ export function onPeriodsChange(
  * Add period to Firestore
  */
 export async function addPeriod(userId: string, period: Omit<Period, 'id'>) {
-  const docRef = await addDoc(collection(db, 'periods'), {
-    ...period,
-    userId,
-    startDate: Timestamp.fromDate(period.startDate),
-    endDate: Timestamp.fromDate(period.endDate),
-    createdAt: Timestamp.now()
-  });
-  return docRef.id;
+  try {
+    const docRef = await addDoc(collection(db, 'periods'), {
+      ...period,
+      userId,
+      startDate: Timestamp.fromDate(period.startDate),
+      endDate: Timestamp.fromDate(period.endDate),
+      createdAt: Timestamp.now()
+    });
+    console.log('✅ Period added to Firebase:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('❌ Error adding period to Firebase:', error);
+    throw error;
+  }
 }
 
 /**
@@ -189,12 +201,18 @@ export function onShoppingItemsChange(
  * Add shopping item to Firestore
  */
 export async function addShoppingItem(userId: string, item: Omit<ShoppingItem, 'id'>) {
-  const docRef = await addDoc(collection(db, 'shoppingItems'), {
-    ...item,
-    userId,
-    createdAt: Timestamp.now()
-  });
-  return docRef.id;
+  try {
+    const docRef = await addDoc(collection(db, 'shoppingItems'), {
+      ...item,
+      userId,
+      createdAt: Timestamp.now()
+    });
+    console.log('✅ Shopping item added to Firebase:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('❌ Error adding shopping item to Firebase:', error);
+    throw error;
+  }
 }
 
 /**
@@ -250,25 +268,32 @@ export async function updateUserSettings(
   periodTypes: string[],
   agendaTypes: string[]
 ) {
-  const q = query(
-    collection(db, 'userSettings'),
-    where('userId', '==', userId)
-  );
+  try {
+    const q = query(
+      collection(db, 'userSettings'),
+      where('userId', '==', userId)
+    );
 
-  const snapshot = await new Promise<QuerySnapshot<DocumentData>>(resolve => {
-    const unsubscribe = onSnapshot(q, resolve);
-    unsubscribe();
-  });
-
-  if (!snapshot.empty) {
-    const settingsRef = doc(db, 'userSettings', snapshot.docs[0].id);
-    await updateDoc(settingsRef, { periodTypes, agendaTypes });
-  } else {
-    await addDoc(collection(db, 'userSettings'), {
-      userId,
-      periodTypes,
-      agendaTypes,
-      createdAt: Timestamp.now()
+    const snapshot = await new Promise<QuerySnapshot<DocumentData>>(resolve => {
+      const unsubscribe = onSnapshot(q, resolve);
+      unsubscribe();
     });
+
+    if (!snapshot.empty) {
+      const settingsRef = doc(db, 'userSettings', snapshot.docs[0].id);
+      await updateDoc(settingsRef, { periodTypes, agendaTypes });
+      console.log('✅ User settings updated in Firebase');
+    } else {
+      await addDoc(collection(db, 'userSettings'), {
+        userId,
+        periodTypes,
+        agendaTypes,
+        createdAt: Timestamp.now()
+      });
+      console.log('✅ User settings created in Firebase');
+    }
+  } catch (error) {
+    console.error('❌ Error updating user settings in Firebase:', error);
+    throw error;
   }
 }
