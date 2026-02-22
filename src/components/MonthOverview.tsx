@@ -62,8 +62,18 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
   // Get selected day items
   const selectedDayItems = selectedDay ? getItemsForDate(selectedDay) : [];
 
+  // Filter periods to only show those that overlap with the displayed month
+  const getPeriodsForMonth = (): Period[] => {
+    return periods.filter(p => 
+      // Period starts before month ends AND period ends after month starts
+      p.startDate <= monthEnd && p.endDate >= monthStart
+    );
+  };
+
+  const periodsInMonth = getPeriodsForMonth();
+
   const getPeriodForDate = (date: Date): Period | undefined => {
-    return periods.find(p => isWithinInterval(date, { start: p.startDate, end: p.endDate }));
+    return periodsInMonth.find(p => isWithinInterval(date, { start: p.startDate, end: p.endDate }));
   };
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -322,12 +332,12 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
           <div className="w-2 h-2 rounded-full bg-acid-green"></div>
           <span>Private</span>
         </div>
-        {periods.length > 0 && (
+        {periodsInMonth.length > 0 && (
           <>
             <div className="h-4 border-l border-border-mid"></div>
             <span className="font-medium text-text-secondary">Periods:</span>
-            {Array.from(new Set(periods.map(p => p.type))).map(type => {
-              const period = periods.find(p => p.type === type);
+            {Array.from(new Set(periodsInMonth.map(p => p.type))).map(type => {
+              const period = periodsInMonth.find(p => p.type === type);
               return period ? (
                 <div key={type} className="flex items-center gap-1">
                   <div className={`w-2 h-2 rounded ${period.color.split(' ')[0]}`}></div>
