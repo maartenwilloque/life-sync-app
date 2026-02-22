@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, isWithinInterval } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, Briefcase, Circle, Trash2, Save, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import type { AgendaItem, Period } from '../types';
 
 interface MonthOverviewProps {
@@ -61,18 +61,6 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
 
   // Get selected day items
   const selectedDayItems = selectedDay ? getItemsForDate(selectedDay) : [];
-
-  const getIndicatorColor = (date: Date) => {
-    const dateItems = getItemsForDate(date);
-    if (dateItems.length === 0) return 'bg-bg-surface';
-    
-    const hasWork = dateItems.some(item => item.category === 'WORK');
-    const hasPrivate = dateItems.some(item => item.category === 'PRIVATE');
-    
-    if (hasWork && hasPrivate) return 'bg-acid-green-dim border-acid-green';
-    if (hasWork) return 'bg-acid-green-dim border-acid-green';
-    return 'bg-crimson-dim border-crimson';
-  };
 
   const getPeriodForDate = (date: Date): Period | undefined => {
     return periods.find(p => isWithinInterval(date, { start: p.startDate, end: p.endDate }));

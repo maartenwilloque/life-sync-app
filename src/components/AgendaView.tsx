@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useStore } from '../hooks/useStore';
 import { MonthOverview } from './MonthOverview';
@@ -13,32 +12,6 @@ export const AgendaView: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'WORK' | 'PRIVATE'>('WORK');
   const [newType, setNewType] = useState('Task');
   const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const handleAddItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemText.trim()) return;
-
-    const [hours, minutes] = newTime.split(':');
-    const date = new Date(newDate);
-    date.setHours(parseInt(hours), parseInt(minutes));
-
-    addAgendaItem({
-      title: newItemText,
-      date,
-      type: newType,
-      category: newCategory,
-      completed: false
-    });
-
-    setNewItemText('');
-    setNewDate(format(new Date(), 'yyyy-MM-dd'));
-    setNewTime('09:00');
-    setNewCategory('WORK');
-    setNewType('Task');
-    setIsFormOpen(false);
-  };
-
-  const upcomingItems = [...agenda].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
     <div className="md:ml-20 pb-20 md:pb-0">
