@@ -31,12 +31,9 @@ export function onAgendaItemsChange(
     where('userId', '==', userId)
   );
 
+  let lastCallbackData: string = '';
+  
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-    // Only update if data is from server (not from local cache during pending writes)
-    if (snapshot.metadata.hasPendingWrites) {
-      return; // Skip updates during local writes to prevent race conditions
-    }
-    
     const items = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -48,7 +45,13 @@ export function onAgendaItemsChange(
         completed: data.completed
       } as AgendaItem;
     });
-    callback(items);
+    
+    // Prevent race conditions: only callback if data actually changed
+    const currentData = JSON.stringify(items);
+    if (currentData !== lastCallbackData) {
+      lastCallbackData = currentData;
+      callback(items);
+    }
   });
 }
 
@@ -95,12 +98,9 @@ export function onPeriodsChange(
     where('userId', '==', userId)
   );
 
+  let lastCallbackData: string = '';
+  
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-    // Only update if data is from server (not from local cache during pending writes)
-    if (snapshot.metadata.hasPendingWrites) {
-      return; // Skip updates during local writes to prevent race conditions
-    }
-    
     const periods = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -113,7 +113,13 @@ export function onPeriodsChange(
         description: data.description
       } as Period;
     });
-    callback(periods);
+    
+    // Prevent race conditions: only callback if data actually changed
+    const currentData = JSON.stringify(periods);
+    if (currentData !== lastCallbackData) {
+      lastCallbackData = currentData;
+      callback(periods);
+    }
   });
 }
 
@@ -162,17 +168,20 @@ export function onShoppingItemsChange(
     where('userId', '==', userId)
   );
 
+  let lastCallbackData: string = '';
+  
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-    // Only update if data is from server (not from local cache during pending writes)
-    if (snapshot.metadata.hasPendingWrites) {
-      return; // Skip updates during local writes to prevent race conditions
-    }
-    
     const items = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as ShoppingItem));
-    callback(items);
+    
+    // Prevent race conditions: only callback if data actually changed
+    const currentData = JSON.stringify(items);
+    if (currentData !== lastCallbackData) {
+      lastCallbackData = currentData;
+      callback(items);
+    }
   });
 }
 
@@ -215,17 +224,21 @@ export function onUserSettingsChange(
     where('userId', '==', userId)
   );
 
+  let lastCallbackData: string = '';
+
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
-    // Only update if data is from server (not from local cache during pending writes)
-    if (snapshot.metadata.hasPendingWrites) {
-      return; // Skip updates during local writes to prevent race conditions
-    }
-    
     if (!snapshot.empty) {
       const data = snapshot.docs[0].data();
-      callback(data.periodTypes || [], data.agendaTypes || []);
+      const periodTypes = data.periodTypes || [];
+      const agendaTypes = data.agendaTypes || [];
+      
+      // Prevent race conditions: only callback if data actually changed
+      const currentData = JSON.stringify({ periodTypes, agendaTypes });
+      if (currentData !== lastCallbackData) {
+        lastCallbackData = currentData;
+        callback(periodTypes, agendaTypes);
+      }
     }
-    // Don't call callback with empty arrays if no data - keep existing local state
   });
 }
 
