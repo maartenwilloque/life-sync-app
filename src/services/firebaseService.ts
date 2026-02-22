@@ -32,6 +32,11 @@ export function onAgendaItemsChange(
   );
 
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    // Only update if data is from server (not from local cache during pending writes)
+    if (snapshot.metadata.hasPendingWrites) {
+      return; // Skip updates during local writes to prevent race conditions
+    }
+    
     const items = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -91,6 +96,11 @@ export function onPeriodsChange(
   );
 
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    // Only update if data is from server (not from local cache during pending writes)
+    if (snapshot.metadata.hasPendingWrites) {
+      return; // Skip updates during local writes to prevent race conditions
+    }
+    
     const periods = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -153,6 +163,11 @@ export function onShoppingItemsChange(
   );
 
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    // Only update if data is from server (not from local cache during pending writes)
+    if (snapshot.metadata.hasPendingWrites) {
+      return; // Skip updates during local writes to prevent race conditions
+    }
+    
     const items = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -201,12 +216,16 @@ export function onUserSettingsChange(
   );
 
   return onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    // Only update if data is from server (not from local cache during pending writes)
+    if (snapshot.metadata.hasPendingWrites) {
+      return; // Skip updates during local writes to prevent race conditions
+    }
+    
     if (!snapshot.empty) {
       const data = snapshot.docs[0].data();
       callback(data.periodTypes || [], data.agendaTypes || []);
-    } else {
-      callback([], []);
     }
+    // Don't call callback with empty arrays if no data - keep existing local state
   });
 }
 
