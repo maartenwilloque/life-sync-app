@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, isWithinInterval, addWeeks } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, addWeeks } from 'date-fns';
 import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import type { AgendaItem, Period } from '../types';
 
