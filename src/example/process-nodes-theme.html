@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Nodes — Theme Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #0a0a0b;
+    --bg-surface: #111114;
+    --bg-card: #161619;
+    --bg-elevated: #1c1c20;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-mid: rgba(255,255,255,0.12);
+
+    --acid-green: #b8ff00;
+    --acid-green-glow: rgba(184,255,0,0.25);
+    --acid-green-dim: rgba(184,255,0,0.08);
+    --crimson: #e8283c;
+    --crimson-glow: rgba(232,40,60,0.25);
+    --crimson-dim: rgba(232,40,60,0.08);
+    --amber: #ffb800;
+
+    --text-primary: #f0f0f2;
+    --text-secondary: rgba(240,240,242,0.5);
+    --text-muted: rgba(240,240,242,0.28);
+
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 28px;
+
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND MESH ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(184,255,0,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 20% 70%, rgba(232,40,60,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 32px;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    margin-bottom: 72px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--acid-green);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--acid-green);
+  }
+  .page-title {
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+  .page-title span {
+    color: var(--acid-green);
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  /* ── COLOR SWATCHES ── */
+  .colors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 72px;
+  }
+  .swatch {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+  }
+  .swatch-color {
+    height: 80px;
+    position: relative;
+  }
+  .swatch-color::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+  }
+  .swatch-info {
+    background: var(--bg-card);
+    padding: 10px 12px;
+  }
+  .swatch-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .swatch-hex {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .type-section {
+    margin-bottom: 72px;
+    display: grid;
+    gap: 20px;
+  }
+  .type-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    transition: border-color 0.2s;
+  }
+  .type-row:hover { border-color: var(--border-mid); }
+  .type-sample { flex: 1; }
+  .type-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  /* ── COMPONENTS ── */
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 72px;
+  }
+
+  /* Node Card */
+  .node-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .node-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-mid);
+  }
+  .node-card-accent {
+    height: 4px;
+    width: 100%;
+  }
+  .node-card-body { padding: 20px; }
+  .node-id {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .node-id .arrow {
+    font-size: 10px;
+    opacity: 0.5;
+  }
+  .node-latency {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .node-latency.warn { color: var(--crimson); font-weight: 700; }
+  .node-latency.ok { color: var(--acid-green); }
+
+  /* Status Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .badge-green {
+    background: var(--acid-green-dim);
+    color: var(--acid-green);
+    border: 1px solid rgba(184,255,0,0.2);
+  }
+  .badge-green .badge-dot { background: var(--acid-green); box-shadow: 0 0 6px var(--acid-green); }
+  .badge-red {
+    background: var(--crimson-dim);
+    color: var(--crimson);
+    border: 1px solid rgba(232,40,60,0.2);
+  }
+  .badge-red .badge-dot { background: var(--crimson); box-shadow: 0 0 6px var(--crimson); }
+  .badge-amber {
+    background: rgba(255,184,0,0.08);
+    color: var(--amber);
+    border: 1px solid rgba(255,184,0,0.2);
+  }
+  .badge-amber .badge-dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    padding: 11px 22px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--acid-green);
+    color: #0a0a0b;
+  }
+  .btn-primary:hover { background: #caff33; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(184,255,0,0.3); }
+  .btn-danger {
+    background: var(--crimson);
+    color: #fff;
+  }
+  .btn-danger:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,40,60,0.3); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-mid);
+  }
+  .btn-ghost:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
+
+  /* Input */
+  .input-demo {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius-sm);
+    padding: 11px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-demo:focus {
+    border-color: var(--acid-green);
+    box-shadow: 0 0 0 3px var(--acid-green-dim);
+  }
+  .input-demo::placeholder { color: var(--text-muted); }
+
+  /* Flow line viz */
+  .flow-viz {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-bottom: 72px;
+    position: relative;
+    overflow: hidden;
+  }
+  .flow-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+  }
+  .flow-track {
+    position: relative;
+    height: 160px;
+  }
+  .flow-line {
+    position: absolute;
+    height: 8px;
+    border-radius: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: flow-pulse 3s ease-in-out infinite;
+  }
+  .flow-line-green {
+    background: var(--acid-green);
+    left: 0; width: 65%;
+    box-shadow: 0 0 20px var(--acid-green-glow), 0 0 60px rgba(184,255,0,0.1);
+    top: 40%;
+    border-radius: 0 100px 100px 0;
+  }
+  .flow-line-red {
+    background: var(--crimson);
+    left: 25%; width: 75%;
+    box-shadow: 0 0 20px var(--crimson-glow), 0 0 60px rgba(232,40,60,0.1);
+    top: 60%;
+    border-radius: 0 100px 100px 0;
+    animation-delay: 0.5s;
+  }
+  @keyframes flow-pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+  }
+  .flow-node-dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--bg-card);
+  }
+
+  /* Metric cards row */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 72px;
+  }
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .metric-card:hover { border-color: var(--border-mid); }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .metric-card.green::before { background: var(--acid-green); }
+  .metric-card.red::before { background: var(--crimson); }
+  .metric-card.amber::before { background: var(--amber); }
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .metric-card.green .metric-value { color: var(--acid-green); }
+  .metric-card.red .metric-value { color: var(--crimson); }
+  .metric-card.amber .metric-value { color: var(--amber); }
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Component showcase card */
+  .showcase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+  .showcase-card-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .flex-wrap-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* Select/Dropdown */
+  .select-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-mid);
+    border-radius: 100px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.15s;
+    user-select: none;
+  }
+  .select-pill:hover { border-color: rgba(255,255,255,0.25); }
+  .select-pill svg { opacity: 0.5; }
+
+  /* Node list item */
+  .node-list { display: flex; flex-direction: column; gap: 2px; }
+  .node-list-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .node-list-item:hover { background: var(--bg-elevated); }
+  .node-list-item.active-green { border-left-color: var(--acid-green); background: var(--acid-green-dim); }
+  .node-list-item.active-red { border-left-color: var(--crimson); background: var(--crimson-dim); }
+  .node-list-item-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    flex: 1;
+    color: var(--text-primary);
+  }
+  .node-list-item-ms {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .node-list-item-ms.warn { color: var(--crimson); font-weight: 700; }
+  .node-list-item-ms.ok { color: var(--acid-green); }
+
+  /* divider */
+  .divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 56px 0;
+  }
+
+  /* animate in */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate { animation: fade-up 0.5s ease forwards; }
+  .d1 { animation-delay: 0.05s; opacity: 0; }
+  .d2 { animation-delay: 0.12s; opacity: 0; }
+  .d3 { animation-delay: 0.2s; opacity: 0; }
+  .d4 { animation-delay: 0.28s; opacity: 0; }
+  .d5 { animation-delay: 0.36s; opacity: 0; }
+
+  @media (max-width: 600px) {
+    .metrics-row { grid-template-columns: 1fr; }
+    .components-grid { grid-template-columns: 1fr; }
+    .colors-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="page-header animate d1">
+    <div class="eyebrow">Design System</div>
+    <h1 class="page-title">Process<br><span>Nodes</span></h1>
+  </div>
+
+  <!-- COLORS -->
+  <div class="animate d2">
+    <div class="section-label">01 — Color Palette</div>
+    <div class="colors-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0a0a0b"></div>
+        <div class="swatch-info"><div class="swatch-name">Void</div><div class="swatch-hex">#0A0A0B</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#111114"></div>
+        <div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">#111114</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#161619"></div>
+        <div class="swatch-info"><div class="swatch-name">Card</div><div class="swatch-hex">#161619</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1c1c20"></div>
+        <div class="swatch-info"><div class="swatch-name">Elevated</div><div class="swatch-hex">#1C1C20</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#b8ff00; box-shadow: inset 0 0 30px rgba(184,255,0,0.3)"></div>
+        <div class="swatch-info"><div class="swatch-name">Acid Green</div><div class="swatch-hex">#B8FF00</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#e8283c; box-shadow: inset 0 0 30px rgba(232,40,60,0.3)"></div>
+        <div class="swatch-info"><div class="swatch-name">Crimson</div><div class="swatch-hex">#E8283C</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ffb800; box-shadow: inset 0 0 30px rgba(255,184,0,0.3)"></div>
+        <div class="swatch-info"><div class="swatch-name">Amber</div><div class="swatch-hex">#FFB800</div></div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:linear-gradient(135deg,#f0f0f2 0%,rgba(240,240,242,0.5) 100%)"></div>
+        <div class="swatch-info"><div class="swatch-name">Text</div><div class="swatch-hex">#F0F0F2</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="animate d3">
+    <div class="section-label">02 — Typography</div>
+    <div class="type-section">
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:48px;font-weight:800;letter-spacing:-0.03em;line-height:1">Display</div>
+        <div class="type-meta">Syne 800<br>48px / -0.03em</div>
+      </div>
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-0.01em">Section Heading</div>
+        <div class="type-meta">Syne 700<br>24px / -0.01em</div>
+      </div>
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600">Card Title</div>
+        <div class="type-meta">Syne 600<br>16px</div>
+      </div>
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">NTRS-11-3 ↗</div>
+        <div class="type-meta">Space Mono 700<br>13px — Node IDs</div>
+      </div>
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(240,240,242,0.5)">0.42 ms — latency readout</div>
+        <div class="type-meta">Space Mono 400<br>11px — Metadata</div>
+      </div>
+      <div class="type-row">
+        <div class="type-sample" style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(240,240,242,0.28)">PROCESS · EUROPE · NEXTGEN</div>
+        <div class="type-meta">Space Mono<br>10px / 0.18em — Labels</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW VIZ -->
+  <div class="animate d3">
+    <div class="section-label">03 — Flow Visualization</div>
+    <div class="flow-viz">
+      <div class="flow-title">// active_routes.stream</div>
+      <div class="flow-track">
+        <div class="flow-line flow-line-green"></div>
+        <div class="flow-line flow-line-red"></div>
+        <!-- dots on green line -->
+        <div class="flow-node-dot" style="background:var(--acid-green);left:0%;top:40%;box-shadow:0 0 12px var(--acid-green)"></div>
+        <div class="flow-node-dot" style="background:var(--acid-green);left:32%;top:40%;box-shadow:0 0 12px var(--acid-green)"></div>
+        <div class="flow-node-dot" style="background:#fff;left:65%;top:40%;box-shadow:0 0 12px var(--acid-green)"></div>
+        <!-- dots on red line -->
+        <div class="flow-node-dot" style="background:var(--crimson);left:25%;top:60%;box-shadow:0 0 12px var(--crimson)"></div>
+        <div class="flow-node-dot" style="background:var(--crimson);left:55%;top:60%;box-shadow:0 0 12px var(--crimson)"></div>
+        <div class="flow-node-dot" style="background:#fff;left:100%;top:60%;box-shadow:0 0 12px var(--crimson)"></div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:16px">
+        <div style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10px;color:var(--acid-green)">
+          <div style="width:20px;height:3px;background:var(--acid-green);border-radius:3px"></div>
+          OK — 0.42ms avg
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10px;color:var(--crimson)">
+          <div style="width:20px;height:3px;background:var(--crimson);border-radius:3px"></div>
+          WARN — 1.22min
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="animate d4">
+    <div class="section-label">04 — Metric Cards</div>
+    <div class="metrics-row" style="margin-bottom:32px">
+      <div class="metric-card green">
+        <div class="metric-value">0.42<span style="font-size:14px;opacity:0.6"> ms</span></div>
+        <div class="metric-label">Avg Latency</div>
+      </div>
+      <div class="metric-card red">
+        <div class="metric-value">1.22<span style="font-size:14px;opacity:0.6"> min</span></div>
+        <div class="metric-label">Max Timeout</div>
+      </div>
+      <div class="metric-card amber">
+        <div class="metric-value">97<span style="font-size:14px;opacity:0.6">%</span></div>
+        <div class="metric-label">Uptime</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <div class="animate d4">
+    <div class="section-label">05 — Components</div>
+    <div class="components-grid">
+
+      <!-- Badges -->
+      <div class="showcase-card">
+        <div class="showcase-card-title">Status Badges</div>
+        <div class="flex-wrap-row">
+          <span class="badge badge-green"><span class="badge-dot"></span>Active</span>
+          <span class="badge badge-red"><span class="badge-dot"></span>Critical</span>
+          <span class="badge badge-amber"><span class="badge-dot"></span>Warning</span>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="showcase-card">
+        <div class="showcase-card-title">Actions</div>
+        <div class="flex-wrap-row">
+          <button class="btn btn-primary">Deploy Node</button>
+          <button class="btn btn-danger">Kill</button>
+          <button class="btn btn-ghost">Details</button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="showcase-card">
+        <div class="showcase-card-title">Filter Pills</div>
+        <div class="flex-wrap-row">
+          <div class="select-pill">
+            Europe
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="select-pill">
+            NextGen Financial
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="showcase-card">
+        <div class="showcase-card-title">Input Field</div>
+        <input class="input-demo" type="text" placeholder="Search nodes...">
+      </div>
+
+      <!-- Node Cards -->
+      <div class="showcase-card">
+        <div class="showcase-card-title">Node Card — Healthy</div>
+        <div class="node-card" style="max-width:220px">
+          <div class="node-card-accent" style="background:var(--acid-green)"></div>
+          <div class="node-card-body">
+            <div class="node-id">NTRS-11-3 <span class="arrow">↗</span></div>
+            <div class="node-latency ok">0.42 ms</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="showcase-card">
+        <div class="showcase-card-title">Node Card — Critical</div>
+        <div class="node-card" style="max-width:220px">
+          <div class="node-card-accent" style="background:var(--crimson)"></div>
+          <div class="node-card-body">
+            <div class="node-id">NTRS-11-5</div>
+            <div class="node-latency warn">1.22 min</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NODE LIST -->
+  <div class="animate d5">
+    <div class="section-label">06 — Node List</div>
+    <div class="showcase-card">
+      <div class="showcase-card-title">Process Nodes — Europe / NextGen Financial</div>
+      <div class="node-list">
+        <div class="node-list-item active-green">
+          <div class="node-list-item-id">NTRS-12-2</div>
+          <div class="node-list-item-ms ok">0.13 ms</div>
+        </div>
+        <div class="node-list-item active-green">
+          <div class="node-list-item-id">NTRS-11-3 ↗</div>
+          <div class="node-list-item-ms ok">0.42 ms</div>
+        </div>
+        <div class="node-list-item active-red">
+          <div class="node-list-item-id">NTRS-11-5</div>
+          <div class="node-list-item-ms warn">1.22 min</div>
+        </div>
+        <div class="node-list-item">
+          <div class="node-list-item-id">NTRS-2-55</div>
+          <div class="node-list-item-ms">0.21 ms</div>
+        </div>
+        <div class="node-list-item">
+          <div class="node-list-item-id">NTRS-12-8</div>
+          <div class="node-list-item-ms">0.36 ms</div>
+        </div>
+        <div class="node-list-item">
+          <div class="node-list-item-id">NTRS-23-1</div>
+          <div class="node-list-item-ms">0.42 ms</div>
+        </div>
+        <div class="node-list-item">
+          <div class="node-list-item-id">NTRS-22-1</div>
+          <div class="node-list-item-ms">0.21 ms</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CSS VARS EXPORT -->
+  <div class="animate d5">
+    <div class="section-label">07 — CSS Variables Export</div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:28px;font-family:var(--font-mono);font-size:11px;line-height:2;color:var(--text-secondary);overflow-x:auto">
+      <span style="color:var(--acid-green)">:root</span> {<br>
+      &nbsp;&nbsp;<span style="color:var(--text-muted)">/* Backgrounds */</span><br>
+      &nbsp;&nbsp;--bg-void: <span style="color:#b8d4ff">#0a0a0b</span>;<br>
+      &nbsp;&nbsp;--bg-surface: <span style="color:#b8d4ff">#111114</span>;<br>
+      &nbsp;&nbsp;--bg-card: <span style="color:#b8d4ff">#161619</span>;<br>
+      &nbsp;&nbsp;--bg-elevated: <span style="color:#b8d4ff">#1c1c20</span>;<br>
+      &nbsp;&nbsp;<span style="color:var(--text-muted)">/* Accents */</span><br>
+      &nbsp;&nbsp;--acid-green: <span style="color:var(--acid-green)">#b8ff00</span>;<br>
+      &nbsp;&nbsp;--crimson: <span style="color:var(--crimson)">#e8283c</span>;<br>
+      &nbsp;&nbsp;--amber: <span style="color:var(--amber)">#ffb800</span>;<br>
+      &nbsp;&nbsp;<span style="color:var(--text-muted)">/* Typography */</span><br>
+      &nbsp;&nbsp;--font-display: <span style="color:#b8d4ff">'Syne', sans-serif</span>;<br>
+      &nbsp;&nbsp;--font-mono: <span style="color:#b8d4ff">'Space Mono', monospace</span>;<br>
+      }
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
