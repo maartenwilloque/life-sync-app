@@ -184,6 +184,10 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
                   completed: false
                 });
               }
+
+              // Close form after adding item(s)
+              onFormToggle?.(false);
+              onFormDataChange?.('title', '');
             }
           }}
           className="mb-4 space-y-4 p-4 bg-bg-elevated rounded-lg border border-border-subtle"
