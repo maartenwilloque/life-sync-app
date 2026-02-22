@@ -223,30 +223,15 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">Type</label>
-              <div className="flex gap-2 mb-2 flex-wrap">
-                {agendaTypes.map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => onFormDataChange?.('type', type)}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      formData.type === type
-                        ? 'bg-acid-green text-bg-void'
-                        : 'bg-bg-card text-text-secondary hover:bg-bg-surface'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="text"
+              <select
                 value={formData.type}
                 onChange={e => onFormDataChange?.('type', e.target.value)}
-                placeholder="Or enter custom type..."
-                className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary placeholder-text-muted"
-              />
-              <p className="text-xs text-text-muted mt-1">Manage types in Settings</p>
+                className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green bg-bg-surface text-text-primary"
+              >
+                {agendaTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             </div>
 
             <div>

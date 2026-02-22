@@ -65,7 +65,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.startDate || !formData.endDate) return;
+    if (!formData.startDate || !formData.endDate) return;
 
     const color = getColorForType(formData.type, periods);
     
@@ -77,7 +77,6 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
       const periodDuration = differenceInDays(endDate, startDate);
       
       let currentStart = new Date(startDate);
-      let counter = 1;
       
       while (currentStart <= repeatEndDate) {
         const currentEnd = new Date(currentStart);
@@ -87,15 +86,13 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
         if (currentEnd > repeatEndDate) break;
         
         onAddPeriod({
-          name: `${formData.name} ${counter}`,
+          name: '',
           type: formData.type,
           startDate: new Date(currentStart),
           endDate: currentEnd,
           color: color,
           description: formData.description
         });
-        
-        counter++;
         
         // Calculate next occurrence
         if (recurrenceFrequency === 'weekly') {
@@ -114,7 +111,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     } else {
       // Single period
       const newPeriod = {
-        name: formData.name,
+        name: '',
         type: formData.type,
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
@@ -140,11 +137,11 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
   };
 
   const handleSaveEdit = (id: string) => {
-    if (!formData.name.trim() || !formData.startDate || !formData.endDate) return;
+    if (!formData.startDate || !formData.endDate) return;
 
     const color = getColorForType(formData.type, periods);
     onUpdatePeriod(id, {
-      name: formData.name,
+      name: '',
       type: formData.type,
       startDate: new Date(formData.startDate),
       endDate: new Date(formData.endDate),
@@ -189,43 +186,17 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
       {(isFormOpen || editingId) && (
         <form onSubmit={e => { e.preventDefault(); editingId ? handleSaveEdit(editingId) : handleSubmit(e); }} className="bg-bg-elevated p-4 rounded-lg mb-4 space-y-3">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Week 1, Spring vacation"
-              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green text-sm bg-bg-surface text-text-primary placeholder-text-muted"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Type (periods with same type share color)</label>
-            <div className="flex gap-2 mb-2 flex-wrap">
-              {periodTypes.map(type => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, type })}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                    formData.type === type
-                      ? 'bg-acid-green text-bg-void'
-                      : 'bg-bg-card text-text-secondary hover:bg-bg-surface'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-text-primary mb-1">Type</label>
+            <select
               value={formData.type}
               onChange={e => setFormData({ ...formData, type: e.target.value })}
-              placeholder="Or enter custom type..."
-              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green text-sm bg-bg-surface text-text-primary placeholder-text-muted"
-            />
-            <p className="text-xs text-text-muted mt-1">Manage period types in Settings</p>
+              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-acid-green text-sm bg-bg-surface text-text-primary"
+              autoFocus
+            >
+              {periodTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -336,8 +307,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-medium text-text-primary">{period.name}</h4>
-                  <p className="text-xs text-text-secondary mt-0.5 font-medium">{period.type}</p>
+                  <h4 className="font-medium text-text-primary">{period.type}</h4>
                   <p className="text-sm text-text-secondary mt-1">
                     {format(period.startDate, 'MMM d, yyyy')} - {format(period.endDate, 'MMM d, yyyy')}
                   </p>
