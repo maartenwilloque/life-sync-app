@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { AgendaItem, ShoppingItem, Period } from '../types';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
+import { collection, query, where, onSnapshot, type QuerySnapshot, type DocumentData } from 'firebase/firestore';
 import {
   onAgendaItemsChange,
   addAgendaItem as fbAddAgendaItem,
@@ -59,20 +60,32 @@ export const useStore = () => {
     return unsubscribe;
   }, []);
 
-  // Initialize user settings when user first signs in
+  // Initialize user settings when user first signs in (only if they don't exist)
   useEffect(() => {
     if (!currentUser) return;
 
-    // Check if settings exist, if not create them with current types
     const initSettings = async () => {
       try {
-        // updateUserSettings will create if doesn't exist, update if does
-        await updateUserSettings(
-          currentUser.uid,
-          periodTypes,
-          agendaTypes
+        // Check if settings already exist in FireStore
+        const q = query(
+          collection(db, 'userSettings'),
+          where('userId', '==', currentUser.uid)
         );
-        console.log('✅ User settings initialized in Firebase');
+
+        const snapshot = await new Promise<QuerySnapshot<DocumentData>>(resolve => {
+          const unsubscribe = onSnapshot(q, resolve);
+          unsubscribe();
+        });
+
+        // Only initialize if user doesn't have settings yet
+        if (snapshot.empty) {
+          await updateUserSettings(
+            currentUser.uid,
+            periodTypes,
+            agendaTypes
+          );
+          console.log('✅ User settings initialized in Firebase (new user)');
+        }
       } catch (error) {
         console.error('Failed to initialize user settings:', error);
       }
