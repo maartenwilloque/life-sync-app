@@ -59,6 +59,28 @@ export const useStore = () => {
     return unsubscribe;
   }, []);
 
+  // Initialize user settings when user first signs in
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Check if settings exist, if not create them with current types
+    const initSettings = async () => {
+      try {
+        // updateUserSettings will create if doesn't exist, update if does
+        await updateUserSettings(
+          currentUser.uid,
+          periodTypes,
+          agendaTypes
+        );
+        console.log('✅ User settings initialized in Firebase');
+      } catch (error) {
+        console.error('Failed to initialize user settings:', error);
+      }
+    };
+
+    initSettings();
+  }, [currentUser]); // Only run once when user first signs in
+
   // Set up real-time listeners for Firebase when user is logged in
   useEffect(() => {
     if (!currentUser) return;
@@ -67,8 +89,13 @@ export const useStore = () => {
     const unsubPeriods = onPeriodsChange(currentUser.uid, setPeriods);
     const unsubShopping = onShoppingItemsChange(currentUser.uid, setShoppingList);
     const unsubSettings = onUserSettingsChange(currentUser.uid, (periodTypes, agendaTypes) => {
-      setPeriodTypes(periodTypes.length > 0 ? periodTypes : ['Kids with me', 'Vacation', 'Work project', 'Travel', 'Other']);
-      setAgendaTypes(agendaTypes.length > 0 ? agendaTypes : ['Task', 'Meeting', 'Call', 'Appointment', 'Event']);
+      // Only update from Firebase if there's actual data
+      if (periodTypes.length > 0) {
+        setPeriodTypes(periodTypes);
+      }
+      if (agendaTypes.length > 0) {
+        setAgendaTypes(agendaTypes);
+      }
     });
 
     return () => {
