@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
+import { AuthComponent } from './AuthComponent';
 
 interface SettingsViewProps {
+  currentUser: any;
   periodTypes: string[];
   onAddPeriodType: (type: string) => void;
   onRemovePeriodType: (type: string) => void;
@@ -11,6 +13,7 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
+  currentUser,
   periodTypes,
   onAddPeriodType,
   onRemovePeriodType,
@@ -41,11 +44,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     <div className="md:ml-20">
       {/* Header */}
       <div className="bg-bg-card border-b border-border-subtle p-4 md:p-6">
-        <h1 className="text-2xl font-bold text-text-primary font-display">Settings</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-text-primary font-display">Settings</h1>
+          <AuthComponent currentUser={currentUser} />
+        </div>
       </div>
 
       {/* Content Area */}
       <main className="p-4 md:p-6 pb-20 md:pb-8 max-w-2xl">
+        {/* Auth Status */}
+        {currentUser && (
+          <div className="mb-6 p-4 bg-bg-elevated rounded-lg border border-border-subtle">
+            <p className="text-sm text-text-secondary">
+              ✓ Your data is being synced to the cloud and will be accessible from any device.
+            </p>
+          </div>
+        )}
+
+        {!currentUser && (
+          <div className="mb-6 p-4 bg-bg-elevated rounded-lg border border-border-subtle">
+            <p className="text-sm text-text-secondary mb-2">
+              Sign in to sync your data across devices and backup to the cloud.
+            </p>
+            <p className="text-xs text-text-muted">
+              Currently using local storage (data is only on this device).
+            </p>
+          </div>
+        )}
+
         {/* Period Types Section */}
         <div className="bg-bg-card rounded-lg shadow-sm border border-border-subtle p-6">
           <h2 className="text-lg font-bold text-text-primary mb-4 font-display">Period Types</h2>

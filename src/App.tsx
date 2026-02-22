@@ -8,7 +8,18 @@ import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'AGENDA' | 'SHOPPING' | 'SETTINGS'>('AGENDA');
-  const { periodTypes, addPeriodType, removePeriodType, agendaTypes, addAgendaType, removeAgendaType } = useStore();
+  const { periodTypes, addPeriodType, removePeriodType, agendaTypes, addAgendaType, removeAgendaType, currentUser, isLoading } = useStore();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-void text-text-primary flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-acid-green mb-4"></div>
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-void text-text-primary">
@@ -19,6 +30,7 @@ function App() {
       {activeTab === 'SHOPPING' && <ShoppingView />}
       {activeTab === 'SETTINGS' && (
         <SettingsView
+          currentUser={currentUser}
           periodTypes={periodTypes}
           onAddPeriodType={addPeriodType}
           onRemovePeriodType={removePeriodType}

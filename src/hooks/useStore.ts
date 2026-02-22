@@ -1,7 +1,28 @@
 import { useState, useEffect } from 'react';
 import type { AgendaItem, ShoppingItem, Period } from '../types';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../config/firebase';
+import {
+  onAgendaItemsChange,
+  addAgendaItem as fbAddAgendaItem,
+  updateAgendaItem as fbUpdateAgendaItem,
+  deleteAgendaItem as fbDeleteAgendaItem,
+  onPeriodsChange,
+  addPeriod as fbAddPeriod,
+  updatePeriod as fbUpdatePeriod,
+  deletePeriod as fbDeletePeriod,
+  onShoppingItemsChange,
+  addShoppingItem as fbAddShoppingItem,
+  updateShoppingItem as fbUpdateShoppingItem,
+  deleteShoppingItem as fbDeleteShoppingItem,
+  onUserSettingsChange,
+  updateUserSettings
+} from '../services/firebaseService';
 
 export const useStore = () => {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Initialize from LocalStorage or empty arrays
   const [agenda, setAgenda] = useState<AgendaItem[]>(() => {
     const saved = localStorage.getItem('agenda');
@@ -28,7 +49,37 @@ export const useStore = () => {
     return saved ? JSON.parse(saved) : ['Task', 'Meeting', 'Call', 'Appointment', 'Event'];
   });
 
-  // Sync to LocalStorage whenever state changes
+  // Set up Firebase auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Set up real-time listeners for Firebase when user is logged in
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const unsubAgenda = onAgendaItemsChange(currentUser.uid, setAgenda);
+    const unsubPeriods = onPeriodsChange(currentUser.uid, setPeriods);
+    const unsubShopping = onShoppingItemsChange(currentUser.uid, setShoppingList);
+    const unsubSettings = onUserSettingsChange(currentUser.uid, (periodTypes, agendaTypes) => {
+      setPeriodTypes(periodTypes.length > 0 ? periodTypes : ['Kids with me', 'Vacation', 'Work project', 'Travel', 'Other']);
+      setAgendaTypes(agendaTypes.length > 0 ? agendaTypes : ['Task', 'Meeting', 'Call', 'Appointment', 'Event']);
+    });
+
+    return () => {
+      unsubAgenda();
+      unsubPeriods();
+      unsubShopping();
+      unsubSettings();
+    };
+  }, [currentUser]);
+
+  // Sync to LocalStorage whenever state changes (backup)
   useEffect(() => {
     localStorage.setItem('agenda', JSON.stringify(agenda));
   }, [agenda]);
@@ -49,78 +100,146 @@ export const useStore = () => {
     localStorage.setItem('agendaTypes', JSON.stringify(agendaTypes));
   }, [agendaTypes]);
 
-  // Actions for Agenda
+  // Agenda operations
   const addAgendaItem = (item: Omit<AgendaItem, 'id'>) => {
-    const newItem = { ...item, id: crypto.randomUUID() };
-    setAgenda(prev => [...prev, newItem].sort((a, b) => a.date.getTime() - b.date.getTime()));
+    if (currentUser) {
+      fbAddAgendaItem(currentUser.uid, item);
+    } else {
+      const newItem: AgendaItem = { ...item, id: crypto.randomUUID() };
+      setAgenda(prev => [...prev, newItem].sort((a, b) => a.date.getTime() - b.date.getTime()));
+    }
   };
 
   const toggleAgendaItem = (id: string) => {
-    setAgenda(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+    const item = agenda.find(i => i.id === id);
+    if (currentUser && item) {
+      fbUpdateAgendaItem(id, { ...item, completed: !item.completed });
+    } else {
+      setAgenda(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+    }
   };
 
   const removeAgendaItem = (id: string) => {
-    setAgenda(prev => prev.filter(item => item.id !== id));
+    if (currentUser) {
+      fbDeleteAgendaItem(id);
+    } else {
+      setAgenda(prev => prev.filter(item => item.id !== id));
+    }
   };
 
   const updateAgendaItem = (id: string, updates: Partial<AgendaItem>) => {
-    setAgenda(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    if (currentUser) {
+      fbUpdateAgendaItem(id, updates);
+    } else {
+      setAgenda(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    }
   };
 
-  // Actions for Shopping List
+  // Shopping operations
   const addShoppingItem = (name: string) => {
-    setShoppingList(prev => [...prev, { id: crypto.randomUUID(), name, completed: false }]);
+    if (currentUser) {
+      fbAddShoppingItem(currentUser.uid, { name, completed: false });
+    } else {
+      setShoppingList(prev => [...prev, { id: crypto.randomUUID(), name, completed: false }]);
+    }
   };
 
   const toggleShoppingItem = (id: string) => {
-    setShoppingList(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+    const item = shoppingList.find(i => i.id === id);
+    if (currentUser && item) {
+      fbUpdateShoppingItem(id, { completed: !item.completed });
+    } else {
+      setShoppingList(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+    }
   };
 
   const removeShoppingItem = (id: string) => {
-    setShoppingList(prev => prev.filter(item => item.id !== id));
+    if (currentUser) {
+      fbDeleteShoppingItem(id);
+    } else {
+      setShoppingList(prev => prev.filter(item => item.id !== id));
+    }
   };
 
   const clearShoppingCompleted = () => {
+    const completedIds = shoppingList.filter(item => item.completed).map(item => item.id);
+    completedIds.forEach(id => {
+      if (currentUser) {
+        fbDeleteShoppingItem(id);
+      }
+    });
     setShoppingList(prev => prev.filter(item => !item.completed));
   };
 
-  // Actions for Periods
+  // Period operations
   const addPeriod = (period: Omit<Period, 'id'>) => {
-    const newPeriod = { ...period, id: crypto.randomUUID() };
-    setPeriods(prev => [...prev, newPeriod].sort((a, b) => a.startDate.getTime() - b.startDate.getTime()));
+    if (currentUser) {
+      fbAddPeriod(currentUser.uid, period);
+    } else {
+      const newPeriod: Period = { ...period, id: crypto.randomUUID() };
+      setPeriods(prev => [...prev, newPeriod].sort((a, b) => a.startDate.getTime() - b.startDate.getTime()));
+    }
   };
 
   const updatePeriod = (id: string, updates: Partial<Period>) => {
-    setPeriods(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    if (currentUser) {
+      fbUpdatePeriod(id, updates);
+    } else {
+      setPeriods(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    }
   };
 
   const removePeriod = (id: string) => {
-    setPeriods(prev => prev.filter(p => p.id !== id));
+    if (currentUser) {
+      fbDeletePeriod(id);
+    } else {
+      setPeriods(prev => prev.filter(p => p.id !== id));
+    }
   };
 
-  // Actions for Period Types
+  // Period types management
   const addPeriodType = (type: string) => {
-    if (type.trim() && !periodTypes.includes(type.trim())) {
-      setPeriodTypes(prev => [...prev, type.trim()]);
+    const trimmedType = type.trim();
+    if (trimmedType && !periodTypes.includes(trimmedType)) {
+      const newTypes = [...periodTypes, trimmedType];
+      setPeriodTypes(newTypes);
+      if (currentUser) {
+        updateUserSettings(currentUser.uid, newTypes, agendaTypes);
+      }
     }
   };
 
   const removePeriodType = (type: string) => {
-    setPeriodTypes(prev => prev.filter(t => t !== type));
+    const newTypes = periodTypes.filter(t => t !== type);
+    setPeriodTypes(newTypes);
+    if (currentUser) {
+      updateUserSettings(currentUser.uid, newTypes, agendaTypes);
+    }
   };
 
-  // Actions for Agenda Types
+  // Agenda types management
   const addAgendaType = (type: string) => {
-    if (type.trim() && !agendaTypes.includes(type.trim())) {
-      setAgendaTypes(prev => [...prev, type.trim()]);
+    const trimmedType = type.trim();
+    if (trimmedType && !agendaTypes.includes(trimmedType)) {
+      const newTypes = [...agendaTypes, trimmedType];
+      setAgendaTypes(newTypes);
+      if (currentUser) {
+        updateUserSettings(currentUser.uid, periodTypes, newTypes);
+      }
     }
   };
 
   const removeAgendaType = (type: string) => {
-    setAgendaTypes(prev => prev.filter(t => t !== type));
+    const newTypes = agendaTypes.filter(t => t !== type);
+    setAgendaTypes(newTypes);
+    if (currentUser) {
+      updateUserSettings(currentUser.uid, periodTypes, newTypes);
+    }
   };
 
   return {
+    currentUser,
+    isLoading,
     agenda,
     shoppingList,
     periods,
