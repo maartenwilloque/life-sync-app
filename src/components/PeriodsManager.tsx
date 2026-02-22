@@ -45,7 +45,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    type: 'Kids with me',
+    type: periodTypes.length > 0 ? periodTypes[0] : '',
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
     color: 'bg-blue-100 border-blue-300',
@@ -164,7 +164,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
   const resetForm = () => {
     setFormData({
       name: '',
-      type: 'Kids with me',
+      type: periodTypes.length > 0 ? periodTypes[0] : '',
       startDate: format(new Date(), 'yyyy-MM-dd'),
       endDate: format(new Date(), 'yyyy-MM-dd'),
       color: 'bg-blue-100 border-blue-300',
@@ -188,7 +188,7 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
               const monthStart = startOfMonth(displayMonth);
               setFormData({
                 name: '',
-                type: 'Kids with me',
+                type: periodTypes.length > 0 ? periodTypes[0] : '',
                 startDate: format(monthStart, 'yyyy-MM-dd'),
                 endDate: format(monthStart, 'yyyy-MM-dd'),
                 color: 'bg-blue-100 border-blue-300',

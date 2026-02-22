@@ -10,7 +10,7 @@ export const AgendaView: React.FC = () => {
   const [newDate, setNewDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [newTime, setNewTime] = useState('09:00');
   const [newCategory, setNewCategory] = useState<'WORK' | 'PRIVATE'>('WORK');
-  const [newType, setNewType] = useState('Task');
+  const [newType, setNewType] = useState(agendaTypes.length > 0 ? agendaTypes[0] : '');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [displayMonth, setDisplayMonth] = useState(new Date());
 

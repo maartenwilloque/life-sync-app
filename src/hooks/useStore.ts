@@ -42,12 +42,12 @@ export const useStore = () => {
 
   const [periodTypes, setPeriodTypes] = useState<string[]>(() => {
     const saved = localStorage.getItem('periodTypes');
-    return saved ? JSON.parse(saved) : ['Kids with me', 'Vacation', 'Work project', 'Travel', 'Other'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [agendaTypes, setAgendaTypes] = useState<string[]>(() => {
     const saved = localStorage.getItem('agendaTypes');
-    return saved ? JSON.parse(saved) : ['Task', 'Meeting', 'Call', 'Appointment', 'Event'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Set up Firebase auth listener
