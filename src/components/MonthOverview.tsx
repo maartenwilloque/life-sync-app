@@ -84,7 +84,14 @@ export const MonthOverview: React.FC<MonthOverviewProps> = ({
   const periodsInMonth = getPeriodsForMonth();
 
   const getPeriodForDate = (date: Date): Period | undefined => {
-    return periodsInMonth.find(p => isWithinInterval(date, { start: p.startDate, end: p.endDate }));
+    return periodsInMonth.find(p => {
+      // Normalize dates to remove time component for accurate comparison
+      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const normalizedStart = new Date(p.startDate.getFullYear(), p.startDate.getMonth(), p.startDate.getDate());
+      const normalizedEnd = new Date(p.endDate.getFullYear(), p.endDate.getMonth(), p.endDate.getDate());
+      
+      return normalizedDate >= normalizedStart && normalizedDate <= normalizedEnd;
+    });
   };
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
