@@ -63,6 +63,16 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
     p.startDate <= monthEnd && p.endDate >= monthStart
   );
 
+  // Group visible periods by type
+  const groupedPeriods = visiblePeriods.reduce((groups, period) => {
+    const type = period.type;
+    if (!groups[type]) {
+      groups[type] = [];
+    }
+    groups[type].push(period);
+    return groups;
+  }, {} as Record<string, Period[]>);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.startDate || !formData.endDate) return;
@@ -300,40 +310,51 @@ export const PeriodsManager: React.FC<PeriodsManagerProps> = ({
         <p className="text-sm text-text-muted text-center py-4">No periods added yet</p>
       ) : (
         <div className="space-y-2">
-          {visiblePeriods.map(period => (
-            <div
-              key={period.id}
-              className={`p-3 rounded-lg border ${period.color}`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-medium text-text-primary">{period.type}</h4>
-                  <p className="text-sm text-text-secondary mt-1">
-                    {format(period.startDate, 'MMM d, yyyy')} - {format(period.endDate, 'MMM d, yyyy')}
-                  </p>
-                  {period.description && (
-                    <p className="text-sm text-text-secondary mt-1">{period.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleEdit(period)}
-                    className="text-text-muted hover:text-acid-green transition-colors p-1"
-                    title="Edit period"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => onRemovePeriod(period.id)}
-                    className="text-text-muted hover:text-crimson transition-colors p-1"
-                    title="Delete period"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+          {Object.entries(groupedPeriods).map(([type, typePeriods]) => {
+            const color = typePeriods[0].color; // All same type share the same color
+            return (
+              <div
+                key={type}
+                className={`p-3 rounded-lg border ${color}`}
+              >
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-medium text-text-primary">{type}</h4>
+                  
+                  {/* List all date ranges for this type */}
+                  <div className="space-y-2">
+                    {typePeriods.map(period => (
+                      <div key={period.id} className="flex items-start justify-between bg-bg-card/30 rounded p-2">
+                        <div className="flex-1">
+                          <p className="text-sm text-text-secondary">
+                            {format(period.startDate, 'MMM d, yyyy')} - {format(period.endDate, 'MMM d, yyyy')}
+                          </p>
+                          {period.description && (
+                            <p className="text-xs text-text-secondary mt-1">{period.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleEdit(period)}
+                            className="text-text-muted hover:text-acid-green transition-colors p-1"
+                            title="Edit period"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => onRemovePeriod(period.id)}
+                            className="text-text-muted hover:text-crimson transition-colors p-1"
+                            title="Delete period"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
